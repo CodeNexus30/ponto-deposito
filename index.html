@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ponto do Depósito</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>Registro de Ponto</h1>
+
+    <div id="horaAtual" class="relogio">00:00:00</div>
+
+    <input
+      type="number"
+      id="codigo"
+      placeholder="Digite seu código"
+      autofocus
+    >
+
+    <button class="btn entrada" onclick="registrarPonto('ENTRADA')">ENTRADA</button>
+    <button class="btn pausa" onclick="registrarPonto('PAUSA')">PAUSA</button>
+    <button class="btn retorno" onclick="registrarPonto('RETORNO')">RETORNO</button>
+    <button class="btn saida" onclick="registrarPonto('SAÍDA')">SAÍDA</button>
+
+    <p id="mensagem"></p>
+
+    <h2>Histórico de Ponto</h2>
+    <div id="historico" class="historico"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
