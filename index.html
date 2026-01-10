@@ -2,32 +2,68 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Ponto do Depósito</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ponto Depósito | Sistema Seguro</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+  <div class="background-glow"></div>
+
   <div class="container">
-    <h1>Registro de Ponto</h1>
+    <header>
+      <h1><i class="ph ph-clock-user"></i> Ponto Digital</h1>
+      <p class="subtitle">Controle de Acesso - Depósito</p>
+    </header>
 
-    <div id="horaAtual" class="relogio">00:00:00</div>
+    <div class="card-relogio">
+      <div id="dataAtual" class="data">--/--/----</div>
+      <div id="horaAtual" class="relogio">00:00:00</div>
+    </div>
 
-    <input
-      type="number"
-      id="codigo"
-      placeholder="Digite seu código"
-      autofocus
-    >
+    <div class="input-group">
+      <input
+        type="number"
+        id="codigo"
+        placeholder="Digite seu código..."
+        autocomplete="off"
+        inputmode="numeric"
+        autofocus
+      >
+    </div>
 
-    <button class="btn entrada" onclick="registrarPonto('ENTRADA')">ENTRADA</button>
-    <button class="btn pausa" onclick="registrarPonto('PAUSA')">PAUSA</button>
-    <button class="btn retorno" onclick="registrarPonto('RETORNO')">RETORNO</button>
-    <button class="btn saida" onclick="registrarPonto('SAÍDA')">SAÍDA</button>
+    <div class="grid-botoes">
+      <button class="btn entrada" onclick="registrarPonto('ENTRADA')">
+        <i class="ph ph-sign-in"></i> ENTRADA
+      </button>
+      <button class="btn pausa" onclick="registrarPonto('PAUSA')">
+        <i class="ph ph-coffee"></i> PAUSA
+      </button>
+      <button class="btn retorno" onclick="registrarPonto('RETORNO')">
+        <i class="ph ph-arrow-u-up-left"></i> RETORNO
+      </button>
+      <button class="btn saida" onclick="registrarPonto('SAÍDA')">
+        <i class="ph ph-sign-out"></i> SAÍDA
+      </button>
+    </div>
 
-    <p id="mensagem"></p>
+    <div id="feedback" class="feedback"></div>
 
-    <h2>Histórico de Ponto</h2>
-    <div id="historico" class="historico"></div>
+    <div class="painel-historico">
+      <div class="historico-header">
+        <h2>Últimos Registros</h2>
+        <button class="btn-exportar" onclick="exportarRelatorio()" title="Baixar Excel">
+          <i class="ph ph-download-simple"></i> Baixar CSV
+        </button>
+      </div>
+      <div id="historico" class="lista-registros"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>
