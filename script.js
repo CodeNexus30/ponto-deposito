@@ -1,138 +1,90 @@
 const funcionarios = {
-  101: { nome: "Luiz", cargo: "Estagiário", setor: "Depósito" },
-  102: { nome: "Andrey", cargo: "Estagiário", setor: "Depósito" },
-  103: { nome: "Sandoval", cargo: "Estagiário", setor: "Depósito" },
-  104: { nome: "Marcelo", cargo: "CLT", setor: "Depósito" },
-  105: { nome: "Guilherme", cargo: "Estagiário", setor: "Loja Max" },
-  106: { nome: "Kauan", cargo: "Estagiário", setor: "Loja Max" }
+  101: { nome: "Luiz", cargo: "Estagiário", setor: "Depósito", carga: 5 },
+  102: { nome: "Andrey", cargo: "Estagiário", setor: "Depósito", carga: 5 },
+  103: { nome: "Sandoval", cargo: "Estagiário", setor: "Depósito", carga: 5 },
+  104: { nome: "Marcelo", cargo: "CLT", setor: "Depósito", carga: 8 },
+  105: { nome: "Guilherme", cargo: "Estagiário", setor: "Loja Max", carga: 5 }
 };
 
-// Carrega registros ou inicia array vazio
 let registros = JSON.parse(localStorage.getItem("registros")) || [];
 
-function atualizarRelogio() {
+function atualizarHora() {
   const agora = new Date();
-  
-  // Hora
-  document.getElementById("horaAtual").innerText = agora.toLocaleTimeString('pt-BR');
-  
-  // Data
-  const opcoesData = { weekday: 'short', day: 'numeric', month: 'short' };
-  document.getElementById("dataAtual").innerText = agora.toLocaleDateString('pt-BR', opcoesData);
+  document.getElementById("horaAtual").innerText = agora.toLocaleTimeString();
 }
-
-setInterval(atualizarRelogio, 1000);
-atualizarRelogio();
+setInterval(atualizarHora, 1000);
+atualizarHora();
 
 function registrarPonto(tipo) {
   const codigoInput = document.getElementById("codigo");
-  const feedback = document.getElementById("feedback");
+  const mensagem = document.getElementById("mensagem");
   const codigo = codigoInput.value;
 
-  feedback.style.opacity = 1;
-
-  // Validação 1: Código vazio
-  if (!codigo) {
-    mostrarFeedback("Digite seu código!", "yellow");
+  if (!codigo || !funcionarios[codigo]) {
+    mensagem.innerText = !codigo ? "Digite o código" : "Código não encontrado";
+    mensagem.style.color = !codigo ? "yellow" : "red";
     return;
   }
 
-  // Validação 2: Funcionário não existe
-  if (!funcionarios[codigo]) {
-    mostrarFeedback("Código inválido!", "red");
-    codigoInput.value = "";
-    codigoInput.focus();
-    return;
-  }
-
-  const funcionario = funcionarios[codigo];
   const agora = new Date();
-
-  const novoRegistro = {
-    id: Date.now(), // ID único para o registro
+  const registro = {
     codigo: codigo,
-    nome: funcionario.nome,
-    cargo: funcionario.cargo,
+    nome: funcionarios[codigo].nome,
     tipo: tipo,
-    timestamp: agora.toISOString(), // Salva data completa (ISO) para o banco/excel
-    dataLegivel: agora.toLocaleDateString('pt-BR'),
-    horaLegivel: agora.toLocaleTimeString('pt-BR')
+    timestamp: agora.getTime(),
+    hora: agora.toLocaleTimeString(),
+    data: agora.toLocaleDateString()
   };
 
-  registros.push(novoRegistro);
+  registros.push(registro);
   localStorage.setItem("registros", JSON.stringify(registros));
 
-  mostrarFeedback(`${funcionario.nome}: ${tipo} registrado!`, "#22c55e"); // Verde sucesso
-  
+  mensagem.innerText = `${registro.nome} - ${tipo} às ${registro.hora}`;
+  mensagem.style.color = "lightgreen";
+
   codigoInput.value = "";
   codigoInput.focus();
   renderizarHistorico();
-  
-  // Limpa feedback após 3 segundos
-  setTimeout(() => {
-    feedback.innerText = "";
-  }, 3000);
 }
 
-function mostrarFeedback(texto, cor) {
-  const feedback = document.getElementById("feedback");
-  feedback.innerText = texto;
-  feedback.style.color = cor;
+function formatarDuracao(ms) {
+  const totalMinutos = Math.floor(ms / 60000);
+  const horas = Math.floor(totalMinutos / 60);
+  const minutos = totalMinutos % 60;
+  return `${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}m`;
 }
 
-function renderizarHistorico() {
-  const historicoDiv = document.getElementById("historico");
-  historicoDiv.innerHTML = "";
-
-  // Pega os últimos 20 registros e inverte a ordem (mais novo primeiro)
-  const ultimosRegistros = registros.slice(-20).reverse();
-
-  ultimosRegistros.forEach(reg => {
-    const div = document.createElement("div");
-    div.className = `registro-item tipo-${reg.tipo.toLowerCase()}`;
-    
-    // Ícone baseado no tipo
-    let icone = "";
-    if(reg.tipo === 'ENTRADA') icone = "ph-sign-in";
-    if(reg.tipo === 'PAUSA') icone = "ph-coffee";
-    if(reg.tipo === 'RETORNO') icone = "ph-arrow-u-up-left";
-    if(reg.tipo === 'SAÍDA') icone = "ph-sign-out";
-
-    div.innerHTML = `
-      <div class="reg-info">
-        <span class="reg-nome">${reg.nome}</span>
-        <span class="reg-cargo">${reg.dataLegivel} • ${reg.tipo}</span>
-      </div>
-      <div class="reg-hora">${reg.horaLegivel}</div>
-    `;
-    
-    historicoDiv.appendChild(div);
-  });
-}
-
-// Função Poderosa: Exportar para Excel (CSV)
 function exportarRelatorio() {
-  if (registros.length === 0) {
-    alert("Sem registros para exportar.");
-    return;
-  }
+  if (registros.length === 0) return alert("Sem dados!");
 
   let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += "Data,Hora,Nome,Cargo,Tipo,Codigo\n"; // Cabeçalho
+  csvContent += "Data,Nome,Tipo,Hora,Duracao da Sessao\n";
 
-  registros.forEach(row => {
-    const linha = `${row.dataLegivel},${row.horaLegivel},${row.nome},${row.cargo},${row.tipo},${row.codigo}`;
-    csvContent += linha + "\n";
+  registros.forEach((reg, index) => {
+    let duracao = "";
+    
+    if (reg.tipo === "PAUSA" || reg.tipo === "SAÍDA") {
+      const logAnterior = registros.slice(0, index).reverse().find(r => r.codigo === reg.codigo);
+      if (logAnterior && (logAnterior.tipo === "ENTRADA" || logAnterior.tipo === "RETORNO")) {
+        duracao = formatarDuracao(reg.timestamp - logAnterior.timestamp);
+      }
+    }
+    csvContent += `${reg.data},${reg.nome},${reg.tipo},${reg.hora},${duracao}\n`;
   });
 
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", "ponto_deposito.csv");
+  link.setAttribute("download", `relatorio_ponto_${new Date().toLocaleDateString()}.csv`);
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
 }
 
-// Inicializa
-renderizarHistorico();
+function renderizarHistorico() {
+  const historico = document.getElementById("historico");
+  historico.innerHTML = "";
+  registros.slice().reverse().forEach(r => {
+    const div = document.createElement("div");
+    div.className = "registro";
+    div.innerText = `${r.data} | ${r.nome} | ${r.tipo} | ${r.hora}`;
+    historico
