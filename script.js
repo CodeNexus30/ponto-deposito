@@ -21,7 +21,6 @@ function renderizarHistorico() {
   if (!historico) return;
   historico.innerHTML = "";
   
-  // Mostra apenas os últimos 10 para não travar a tela
   const ultimos = registros.slice(-10).reverse();
   ultimos.forEach(r => {
     const div = document.createElement("div");
@@ -44,6 +43,17 @@ function registrarPonto(tipo) {
     return;
   }
 
+  // --- TRAVA DE SEGURANÇA ---
+  // Busca o último registro desta pessoa especifica
+  const ultimoPonto = registros.slice().reverse().find(r => r.codigo === codigo);
+  
+  if (ultimoPonto && ultimoPonto.tipo === tipo) {
+    mensagem.innerText = `Erro: Você já registrou ${tipo}!`;
+    mensagem.style.color = "orange";
+    return;
+  }
+  // ---------------------------
+
   const agora = new Date();
   const novo = {
     codigo: codigo,
@@ -64,8 +74,6 @@ function registrarPonto(tipo) {
 
   codigoInput.value = "";
   codigoInput.focus();
-  
-  // AQUI ESTÁ O SEGREDO: Chama a função de desenhar na tela NA HORA
   renderizarHistorico(); 
 }
 
@@ -92,5 +100,4 @@ function exportarRelatorio() {
   link.click();
 }
 
-// Carrega o histórico assim que abre a página
 renderizarHistorico();
