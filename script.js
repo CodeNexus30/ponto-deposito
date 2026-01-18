@@ -22,7 +22,7 @@ function registrarPonto(tipo) {
 
   if (!codigo || !funcionarios[codigo]) {
     mensagem.innerText = !codigo ? "Digite o código" : "Código não encontrado";
-    mensagem.style.color = !codigo ? "yellow" : "red";
+    mensagem.style.color = "red";
     return;
   }
 
@@ -56,13 +56,10 @@ function formatarDuracao(ms) {
 
 function exportarRelatorio() {
   if (registros.length === 0) return alert("Sem dados!");
-
-  let csvContent = "data:text/csv;charset=utf-8,";
-  csvContent += "Data,Nome,Tipo,Hora,Duracao da Sessao\n";
+  let csvContent = "data:text/csv;charset=utf-8,Data,Nome,Tipo,Hora,Duracao da Sessao\n";
 
   registros.forEach((reg, index) => {
     let duracao = "";
-    
     if (reg.tipo === "PAUSA" || reg.tipo === "SAÍDA") {
       const logAnterior = registros.slice(0, index).reverse().find(r => r.codigo === reg.codigo);
       if (logAnterior && (logAnterior.tipo === "ENTRADA" || logAnterior.tipo === "RETORNO")) {
@@ -75,20 +72,20 @@ function exportarRelatorio() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `relatorio_ponto_${new Date().toLocaleDateString()}.csv`);
+  link.setAttribute("download", `ponto_${new Date().toLocaleDateString()}.csv`);
   document.body.appendChild(link);
   link.click();
 }
 
 function renderizarHistorico() {
   const historico = document.getElementById("historico");
+  if (!historico) return;
   historico.innerHTML = "";
   registros.slice().reverse().forEach(r => {
     const div = document.createElement("div");
     div.className = "registro";
-    div.innerText = `${r.data} | ${r.nome} | ${r.tipo} | ${r.hora}`;
+    div.innerText = `${r.data || '--'} | ${r.nome} | ${r.tipo} | ${r.hora}`;
     historico.appendChild(div);
-  }); // Esta linha fecha o forEach
-} // Esta linha FECHA A FUNÇÃO (é a que deve estar a faltar)
-
-renderizarHistorico(); // Esta linha inicia o histórico
+  });
+}
+renderizarHistorico();
