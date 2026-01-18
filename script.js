@@ -6,11 +6,19 @@ const funcionarios = {
   105: { nome: "Guilherme", cargo: "Estagiário", setor: "Loja Max", carga: 5 }
 };
 
-let registros = JSON.parse(localStorage.getItem("registros")) || [];
+let registros = [];
+try {
+  const dadosSalvos = localStorage.getItem("registros");
+  registros = dadosSalvos ? JSON.parse(dadosSalvos) : [];
+} catch (e) {
+  console.error("Erro ao carregar registros", e);
+  registros = [];
+}
 
 function atualizarHora() {
   const agora = new Date();
-  document.getElementById("horaAtual").innerText = agora.toLocaleTimeString();
+  const elementoHora = document.getElementById("horaAtual");
+  if (elementoHora) elementoHora.innerText = agora.toLocaleTimeString();
 }
 setInterval(atualizarHora, 1000);
 atualizarHora();
@@ -18,16 +26,18 @@ atualizarHora();
 function registrarPonto(tipo) {
   const codigoInput = document.getElementById("codigo");
   const mensagem = document.getElementById("mensagem");
-  const codigo = codigoInput.value;
+  const codigo = codigoInput ? codigoInput.value : "";
 
   if (!codigo || !funcionarios[codigo]) {
-    mensagem.innerText = !codigo ? "Digite o código" : "Código não encontrado";
-    mensagem.style.color = "red";
+    if (mensagem) {
+      mensagem.innerText = !codigo ? "Digite o código" : "Código não encontrado";
+      mensagem.style.color = "orange";
+    }
     return;
   }
 
   const agora = new Date();
-  const registro = {
+  const novoRegistro = {
     codigo: codigo,
     nome: funcionarios[codigo].nome,
     tipo: tipo,
@@ -36,14 +46,18 @@ function registrarPonto(tipo) {
     data: agora.toLocaleDateString()
   };
 
-  registros.push(registro);
+  registros.push(novoRegistro);
   localStorage.setItem("registros", JSON.stringify(registros));
 
-  mensagem.innerText = `${registro.nome} - ${tipo} às ${registro.hora}`;
-  mensagem.style.color = "lightgreen";
+  if (mensagem) {
+    mensagem.innerText = `${novoRegistro.nome} - ${tipo} registrado!`;
+    mensagem.style.color = "lightgreen";
+  }
 
-  codigoInput.value = "";
-  codigoInput.focus();
+  if (codigoInput) {
+    codigoInput.value = "";
+    codigoInput.focus();
+  }
   renderizarHistorico();
 }
 
@@ -55,8 +69,8 @@ function formatarDuracao(ms) {
 }
 
 function exportarRelatorio() {
-  if (registros.length === 0) return alert("Sem dados!");
-  let csvContent = "data:text/csv;charset=utf-8,Data,Nome,Tipo,Hora,Duracao da Sessao\n";
+  if (registros.length === 0) return alert("Sem dados para exportar!");
+  let csvContent = "\uFEFFData,Nome,Tipo,Hora,Duracao da Sessao\n";
 
   registros.forEach((reg, index) => {
     let duracao = "";
@@ -69,23 +83,30 @@ function exportarRelatorio() {
     csvContent += `${reg.data},${reg.nome},${reg.tipo},${reg.hora},${duracao}\n`;
   });
 
-  const encodedUri = encodeURI(csvContent);
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `ponto_${new Date().toLocaleDateString()}.csv`);
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", `ponto_deposito_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`);
   document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
 }
 
 function renderizarHistorico() {
   const historico = document.getElementById("historico");
   if (!historico) return;
   historico.innerHTML = "";
-  registros.slice().reverse().forEach(r => {
+  
+  const ultimosdez = registros.slice(-10).reverse();
+  ultimosdez.forEach(r => {
     const div = document.createElement("div");
     div.className = "registro";
-    div.innerText = `${r.data || '--'} | ${r.nome} | ${r.tipo} | ${r.hora}`;
+    div.innerText = `${r.data || '--'} | ${r.nome || 'Usuário'} | ${r.tipo} | ${r.hora}`;
     historico.appendChild(div);
   });
 }
-renderizarHistorico();
+
+// Inicializa o sistema
+document.addEventListener("DOMContentLoaded", () => {
+  renderizarHistorico();
+});
