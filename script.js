@@ -87,4 +87,8 @@ function renderizarHistorico() {
     const div = document.createElement("div");
     div.className = "registro";
     div.innerText = `${r.data} | ${r.nome} | ${r.tipo} | ${r.hora}`;
-    historico
+    historico.appendChild(div);
+  }); // Esta linha fecha o forEach
+} // Esta linha FECHA A FUNÇÃO (é a que deve estar a faltar)
+
+renderizarHistorico(); // Esta linha inicia o histórico
